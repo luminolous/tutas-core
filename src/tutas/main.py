@@ -16,6 +16,7 @@ def main():
     G  = build_similarity_graph(df, THRESHOLD)
     partition = louvain(G)
     rows = make_subgroups(df, partition, max_size=MAX_CIRCLE_SZ)
+    print(rows)
 
     pd.DataFrame(rows).to_csv(OUTPUT_CSV, index=False)
     print(f"➡️  Circles saved to {OUTPUT_CSV}")
@@ -26,7 +27,6 @@ def main():
     # pakai scoring + Hungarian dari package
     score_df = matriks()
     match_tutors(score_df)
-
 
 if __name__ == "__main__":
     main()

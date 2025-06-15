@@ -29,4 +29,12 @@ def build_similarity_graph(df, THRESHOLD):
         if name not in G:
             G.add_node(name)
 
+    print("Daftar node:")
+    for n in G.nodes():
+        print(" •", n)
+
+    # --- Edges + bobot ---
+    print("\nDaftar edge (u, v, weight):")
+    for u, v, data in G.edges(data=True):
+        print(f" • {u}  —  {v}   (w = {data['weight']:.3f})")
     return G
