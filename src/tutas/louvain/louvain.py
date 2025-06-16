@@ -76,7 +76,7 @@ def one_level(G, partition, m):
 
 def aggregate_graph(G, partition):
     """
-    Phase 2 Louvain: **aggregation**.
+    Phase 2 Louvain: aggregation.
     - Bentuk graf baru di mana setiap komunitas menjadi satu node,
       dan bobot antara komunitas = jumlah bobot edge antar node di komunitas asal.
     """

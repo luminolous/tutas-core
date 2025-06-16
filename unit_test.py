@@ -8,11 +8,10 @@ from src.tutas.config import INPUT_CSV, OUTPUT_CSV, THRESHOLD, MAX_CIRCLE_SZ
 
 class TestLouvainCircleClustering(unittest.TestCase):
     def setUp(self):
-        # Buat dataframe dummy untuk test
         data = "data/dummy/dummy_circle_2.csv"
         self.df = pd.read_csv(data)
 
-        # Expected output (circle ID bisa berbeda urutan, tapi pasangan anggota komunitas harus cocok)
+        # Expected output
         self.expected_communities = [
             {'Nama': 'a_tutor', 'Circle ID': 0, 'Tutor/Murid': 'Tutor', 'No WA': 81234567890},
             {'Nama': 'b_murid', 'Circle ID': 0, 'Tutor/Murid': 'Murid', 'No WA': 81234567891},
@@ -22,7 +21,6 @@ class TestLouvainCircleClustering(unittest.TestCase):
         ]
 
     def normalize_result(self, result):
-        # Mengubah no WA ke int dan urutkan berdasarkan nama untuk perbandingan
         return sorted([
             {
                 'Nama': x['Nama'],
@@ -41,7 +39,7 @@ class TestLouvainCircleClustering(unittest.TestCase):
         normalized_actual = self.normalize_result(actual_output)
         normalized_expected = sorted(self.expected_communities, key=lambda x: x['Nama'])
 
-        # Cek jumlah anggota
+        # Mengecek jumlah anggota
         self.assertEqual(len(normalized_actual), len(normalized_expected))
 
         # Cek tiap entri
