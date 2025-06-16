@@ -23,7 +23,7 @@ def compute_modularity(G, partition, m):
 
 def one_level(G, partition, m):
     """
-    Lakukan phase 1 Louvain: **local moving**.
+    Lakukan phase 1 Louvain: local moving.
     - Iterasi node, coba pindahkan ke komunitas tetangga yang memberi gain modularity terbesar.
     """
     improved = True
@@ -57,7 +57,7 @@ def one_level(G, partition, m):
             # perbandingan dengan memindah ke tiap komunitas tetangga
             for com, w_in in neigh_com2weight.items():
                 tot_com_target = sum(degrees[n] for n in community2nodes[com])
-                # formula ΔQ dari Blondel et al.
+                # formula ΔQ dari Blondel et al., 2008
                 gain = (w_in - ki * tot_com_target / (2*m)) / (2*m)
                 if gain > best_gain:
                     best_gain = gain
