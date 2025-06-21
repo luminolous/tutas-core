@@ -83,8 +83,14 @@ def format_matches(score_df: "pd.DataFrame", assignment: list[int]) -> tuple[lis
     matches = []
     total = 0
     for i, j in enumerate(assignment):
+        t = tutors[i]
+        m = murids[j]
         s = scores[i][j]
-        matches.append((tutors[i], murids[j], int(s)))
+
+        if t.startswith("DUMMY") or m.startswith("DUMMY"):
+            continue
+
+        matches.append((t, m, int(s)))
         total += s
 
     return matches, total
