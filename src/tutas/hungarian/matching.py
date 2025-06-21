@@ -1,8 +1,9 @@
 # src/tutas/hungarian/matching.py
 
 import numpy as np
+import pandas as pd
 
-def build_cost_matrix(score_df: "pd.DataFrame") -> list[list[float]]:
+def build_cost_matrix(score_df: pd.DataFrame) -> list[list[float]]:
     """
     Dari DataFrame skor (tutor × murid), bangun matriks biaya (cost matrix)
     untuk minimisasi Hungarian:
@@ -10,7 +11,6 @@ def build_cost_matrix(score_df: "pd.DataFrame") -> list[list[float]]:
     """
     scores = score_df.values
     max_score = scores.max()
-    # ubah ke list of lists supaya “hungarian” lebih generik
     return (max_score - scores).tolist()
 
 def hungarian(cost: list[list[float]]) -> list[int]:
@@ -31,7 +31,6 @@ def hungarian(cost: list[list[float]]) -> list[int]:
         minv = [float('inf')]*(n+1)
         used = [False]*(n+1)
 
-        # cari augmenting path
         while True:
             used[j0] = True
             i0 = p[j0]
@@ -44,7 +43,6 @@ def hungarian(cost: list[list[float]]) -> list[int]:
                         minv[j], way[j] = cur, j0
                     if minv[j] < delta:
                         delta, j1 = minv[j], j
-            # update potentials
             for j in range(n+1):
                 if used[j]:
                     u[p[j]] += delta
@@ -55,7 +53,6 @@ def hungarian(cost: list[list[float]]) -> list[int]:
             if p[j0] == 0:
                 break
 
-        # augmentasi
         while True:
             j1      = way[j0]
             p[j0]   = p[j1]
@@ -63,14 +60,13 @@ def hungarian(cost: list[list[float]]) -> list[int]:
             if j0 == 0:
                 break
 
-    # susun assignment akhir
     assignment = [-1]*n
     for j in range(1, n+1):
         if p[j] != 0:
             assignment[p[j]-1] = j-1
     return assignment
 
-def format_matches(score_df: "pd.DataFrame", assignment: list[int]) -> tuple[list[tuple[str,str,int]], int]:
+def format_matches(score_df: pd.DataFrame, assignment: list[int]) -> tuple[list[tuple[str,str,int]], int]:
     """
     Dari DataFrame skor dan assignment, kembalikan:
       - list of (tutor_name, murid_name, score)
@@ -83,19 +79,22 @@ def format_matches(score_df: "pd.DataFrame", assignment: list[int]) -> tuple[lis
     matches = []
     total = 0
     for i, j in enumerate(assignment):
-        t = tutors[i]
-        m = murids[j]
-        s = scores[i][j]
-
-        if t.startswith("DUMMY") or m.startswith("DUMMY"):
+        if j >= len(murids) or i >= len(tutors):
             continue
 
-        matches.append((t, m, int(s)))
+        tutor_name = tutors[i]
+        murid_name = murids[j]
+
+        if tutor_name.startswith("DUMMY") or murid_name.startswith("DUMMY"):
+            continue
+
+        s = scores[i][j]
+        matches.append((tutor_name, murid_name, int(s)))
         total += s
 
     return matches, total
 
-def match_tutors(score_df: "pd.DataFrame", verbose=False) -> list[int]:
+def match_tutors(score_df: pd.DataFrame, verbose: bool = False) -> list[int]:
     cost = build_cost_matrix(score_df)
     assignment = hungarian(cost)
     if verbose:
@@ -105,4 +104,3 @@ def match_tutors(score_df: "pd.DataFrame", verbose=False) -> list[int]:
             print(f"{t} → {m} (skor: {s})")
         print(f"\n✅ Total skor maksimum: {total}")
     return assignment
-

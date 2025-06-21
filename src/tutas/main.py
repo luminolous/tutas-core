@@ -41,7 +41,7 @@ def submit():
 
     if matching_type == "1-on-1":
         try:
-            df_1on1 = df[df["matchingType"] == "1-on-1"]
+            df_1on1 = df[df["matchingType"].str.lower() == "1-on-1"]
             tutors = df_1on1[df_1on1["status"].str.lower() == "tutor"]
             murids = df_1on1[df_1on1["status"].str.lower() == "student"]
 
@@ -57,7 +57,7 @@ def submit():
 
     elif matching_type == "circle":
         try:
-            df_circle = df[df["matchingType"] == "Circle"]
+            df_circle = df[df["matchingType"].str.lower() == "circle"]
             if not df_circle.empty:
                 G = build_similarity_graph(df_circle, threshold=0.5)
                 partition = louvain(G)
@@ -76,7 +76,7 @@ def submit():
 def match_1on1():
     try:
         df = pd.read_json(INPUT_FILE)
-        df_1on1 = df[df["matchingType"] == "1-on-1"]
+        df_1on1 = df[df["matchingType"].str.lower() == "1-on-1"]
         tutors = df_1on1[df_1on1["status"].str.lower() == "tutor"]
         murids = df_1on1[df_1on1["status"].str.lower() == "student"]
 
@@ -99,7 +99,7 @@ def match_1on1():
 def match_circle():
     try:
         df = pd.read_json(INPUT_FILE)
-        df_circle = df[df["matchingType"] == "Circle"]
+        df_circle = df[df["matchingType"].str.lower() == "circle"]
 
         if df_circle.empty:
             return jsonify({"status": "no circle entries"})

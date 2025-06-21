@@ -12,30 +12,35 @@ def compute_score_matrix(
         "preferredDate": 1
     }
 ) -> pd.DataFrame:
-    """Hitung matriks skor kecocokan tutor–murid berdasarkan atribut dan pad jadi square."""
+    """Hitung matriks skor antara tutor dan murid, lalu pad agar persegi."""
 
     def score_row(t: pd.Series, s: pd.Series) -> int:
         return sum(
-            w for attr, w in weights.items() if t.get(attr) == s.get(attr)
+            w for attr, w in weights.items()
+            if t.get(attr) == s.get(attr)
         )
 
-    mat = np.zeros((len(tutors), len(students)), dtype=int)
+    num_tutors, num_students = len(tutors), len(students)
+    mat = np.zeros((num_tutors, num_students), dtype=int)
+
     for i, t in tutors.iterrows():
         for j, s in students.iterrows():
             mat[i, j] = score_row(t, s)
 
-    # Ambil nama
-    tutor_names = tutors["fullName"].tolist()
-    student_names = students["fullName"].tolist()
+    tutor_names = tutors["fullName"].tolist() if "fullName" in tutors.columns else [f"Tutor{i}" for i in range(num_tutors)]
+    student_names = students["fullName"].tolist() if "fullName" in students.columns else [f"Student{j}" for j in range(num_students)]
 
-    # Pad supaya square
-    n = max(len(tutor_names), len(student_names))
-    while len(tutor_names) < n:
-        tutor_names.append(f"DUMMY_TUTOR_{len(tutor_names)+1}")
-    while len(student_names) < n:
-        student_names.append(f"DUMMY_MURID_{len(student_names)+1}")
+    # Padding agar square
+    diff = abs(num_tutors - num_students)
+    if num_tutors < num_students:
+        # Tambah dummy tutor
+        dummy_rows = np.zeros((diff, num_students), dtype=int)
+        mat = np.vstack([mat, dummy_rows])
+        tutor_names += [f"DUMMY_TUTOR_{i+1}" for i in range(diff)]
+    elif num_students < num_tutors:
+        # Tambah dummy murid
+        dummy_cols = np.zeros((num_tutors, diff), dtype=int)
+        mat = np.hstack([mat, dummy_cols])
+        student_names += [f"DUMMY_STUDENT_{j+1}" for j in range(diff)]
 
-    padded_mat = np.zeros((n, n), dtype=int)
-    padded_mat[:len(tutors), :len(students)] = mat
-
-    return pd.DataFrame(padded_mat, index=tutor_names, columns=student_names)
+    return pd.DataFrame(mat, index=tutor_names, columns=student_names)
