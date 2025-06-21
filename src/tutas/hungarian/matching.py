@@ -89,15 +89,14 @@ def format_matches(score_df: "pd.DataFrame", assignment: list[int]) -> tuple[lis
 
     return matches, total
 
-def match_tutors(score_df: "pd.DataFrame") -> None:
-    """
-    Wrapper lengkap: bangun cost, hitung Hungarian, cetak hasil.
-    """
+def match_tutors(score_df: "pd.DataFrame", verbose=False) -> list[int]:
     cost = build_cost_matrix(score_df)
     assignment = hungarian(cost)
-    matches, total = format_matches(score_df, assignment)
+    if verbose:
+        matches, total = format_matches(score_df, assignment)
+        print("\n🔗 Optimal tutor–murid pairing (Hungarian):")
+        for t, m, s in matches:
+            print(f"{t} → {m} (skor: {s})")
+        print(f"\n✅ Total skor maksimum: {total}")
+    return assignment
 
-    print("\n🔗 Optimal tutor–murid pairing (Hungarian):")
-    for t, m, s in matches:
-        print(f"{t} → {m} (skor: {s})")
-    print(f"\n✅ Total skor maksimum: {total}")
