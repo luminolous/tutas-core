@@ -223,15 +223,14 @@ export default function AboutPage() {
             <div>
               <div className="text-3xl mb-3">📧</div>
               <h4 className="font-semibold text-white mb-2">Email Support</h4>
-              <p className="text-gray-300">admin@tutas.com</p>
-              <p className="text-gray-300">support@tutas.com</p>
+              <p className="text-gray-300">tutasits@gmail.com</p>
             </div>
             <div>
               <div className="text-3xl mb-3">📱</div>
               <h4 className="font-semibold text-white mb-2">WhatsApp</h4>
-              <p className="text-gray-300">+62 812 3456 7890</p>
+              <p className="text-gray-300">+62 819 3762 2696</p>
               <a
-                href="https://wa.me/6281234567890"
+                href="https://wa.me/6281937622696"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block mt-2 whatsapp-btn"
@@ -242,9 +241,7 @@ export default function AboutPage() {
             <div>
               <div className="text-3xl mb-3">🕒</div>
               <h4 className="font-semibold text-white mb-2">Support Hours</h4>
-              <p className="text-gray-300">Mon-Fri: 9:00 AM - 6:00 PM</p>
-              <p className="text-gray-300">Sat: 10:00 AM - 4:00 PM</p>
-              <p className="text-gray-300">Sun: Closed</p>
+              <p className="text-gray-300">24/7 Everyday</p>
             </div>
           </div>
         </CardContent>
@@ -262,7 +259,7 @@ export default function AboutPage() {
             <Button className="btn-primary text-lg px-8 py-3">Register Now</Button>
           </Link>
           <Link href="/available">
-            <Button className="btn-secondary text-lg px-8 py-3">Browse Available Tutors</Button>
+            <Button className="btn-secondary text-lg px-8 py-3">Browse Tutors and Students Matched</Button>
           </Link>
         </div>
       </div>
