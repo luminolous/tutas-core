@@ -1,7 +1,5 @@
 # tutas-core
 
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)  ![License](https://img.shields.io/badge/license-MIT-green)  ![Build](https://img.shields.io/badge/build-passing-brightgreen)
-
 A full‑stack web app that **pairs tutors and students optimally (1‑on‑1)** using the Hungarian algorithm and **forms balanced study circles** using Louvain community detection.
 
 ---
@@ -12,7 +10,6 @@ A full‑stack web app that **pairs tutors and students optimally (1‑on‑1)**
 * **Tutas Circle auto‑grouping** – Builds similarity graph (TF‑IDF + cosine) → Louvain partition → sub‑groups ≤ `MAX_CIRCLE_SZ`.
 * **Flexible schedule handling** – If either party is flexible, date/time mismatch is ignored in scoring.
 * **Dark‑mode React UI** – Built with Next.js + Tailwind, live refresh for new pairs/groups.
-* **Plain‑JSON storage** – Easy export to Google Sheets / CSV.
 * **REST API** – Simple endpoints: `/submit`, `/available`, `/tutas-circle`.
 
 ---
@@ -35,9 +32,9 @@ A full‑stack web app that **pairs tutors and students optimally (1‑on‑1)**
 
 | Layer                 | Tools / Libraries                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------- |
-| **Frontend**          | Next.js 14, Tailwind CSS, Framer‑Motion                                            |
+| **Frontend**          | Next.js 14, Tailwind CSS                                                           |
 | **Backend API**       | Flask 3, Flask‑CORS                                                                |
-| **Algorithms / Data** | pandas, numpy, scikit‑learn, **python‑louvain**, **networkx**, munkres (Hungarian) |
+| **Algorithms / Data** | pandas, numpy, scikit‑learn, **python‑louvain**                                    |
 | **Storage**           | JSON files                                                                         |
 
 ---
@@ -82,8 +79,8 @@ $ python main.py
 
 # Frontend (new terminal)
 $ cd web
-$ npm install
-$ npm run dev
+$ pnpm install
+$ pnpm run dev
 ```
 
 ---
