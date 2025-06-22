@@ -62,6 +62,9 @@ def run_circle_matching(df, max_size=4):
     # 6) Flat rows dari grouping.py
     rows = make_subgroups(df_circle, partition, max_size=max_size)
 
+    # DEBUG: lihat dulu baris-baris murid/tutor yang dihasilkan
+    print("DEBUG rows:", rows)
+
     # —————— Transform flat rows → struktur StudyGroup ——————
     groups_map = {}
     for r in rows:
