@@ -1,17 +1,52 @@
 {
   "study_groups": [
     {
-      "id": "2",
+      "id": "0",
       "courseName": "Data Structure",
-      "subtopic": "1111",
-      "schedule": "1111-11-11 11:11",
+      "subtopic": "Trees",
+      "schedule": "2025-07-05 16:00",
+      "learningMode": "Offline near ITS",
+      "maxStudents": 4,
+      "tutor": {
+        "name": "Ivan Gunawan",
+        "whatsapp": "6281999999999"
+      },
+      "students": [
+        {
+          "name": "Kevin Susilo",
+          "whatsapp": "6282111111111"
+        },
+        {
+          "name": "Lisa Meliana",
+          "whatsapp": "6282222222222"
+        },
+        {
+          "name": "Putri Ayu",
+          "whatsapp": "6282666666666"
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "courseName": "Graph Theory",
+      "subtopic": "Shortest Path",
+      "schedule": "2025-07-06 13:30",
       "learningMode": "Online",
       "maxStudents": 4,
       "tutor": {
-        "name": "Paras",
-        "whatsapp": "6200000000000"
+        "name": "Julia Hartono",
+        "whatsapp": "6282000000000"
       },
-      "students": []
+      "students": [
+        {
+          "name": "Nia Windy",
+          "whatsapp": "6282444444444"
+        },
+        {
+          "name": "Oscar Lim",
+          "whatsapp": "6282555555555"
+        }
+      ]
     }
   ]
 }

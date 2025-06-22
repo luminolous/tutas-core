@@ -62,6 +62,9 @@ def run_circle_matching(df, max_size=4):
     # 6) Flat rows dari grouping.py
     rows = make_subgroups(df_circle, partition, max_size=max_size)
 
+    # DEBUG: lihat dulu baris-baris murid/tutor yang dihasilkan
+    print("DEBUG rows:", rows)
+
     # —————— Transform flat rows → struktur StudyGroup ——————
     groups_map = {}
     for r in rows:
@@ -131,17 +134,22 @@ def submit():
             tutors = df_1on1[df_1on1["status"].str.lower() == "tutor"]
             murids = df_1on1[df_1on1["status"].str.lower() == "student"]
 
-            if not tutors.empty and not murids.empty:
-                df_score = compute_score_matrix(tutors, murids)
-                assignment = match_tutors(df_score)
-                matches, total = format_matches(df_score, assignment, df_1on1)
+            if tutors.empty or murids.empty:
+                return jsonify({"status":"not enough data","matches":[]}), 200
 
-                with open(OUTPUT_1ON1, "w") as f:
-                    json.dump(matches, f, indent=2)
-        except Exception:
-            import traceback
-            traceback.print_exc()
-            return jsonify({ "status": "error", "error": "circle matching failed" }), 500
+            df_score  = compute_score_matrix(tutors, murids)
+            assignment = match_tutors(df_score)
+            matches, total = format_matches(df_score, assignment, df_1on1)
+
+            with open(OUTPUT_1ON1, "w") as f:
+                json.dump(matches, f, indent=2)
+
+            # ---- sangat penting: RETURN di sini ----
+            return jsonify({"status":"1-on-1 matched","matched_pairs":matches}), 200
+
+        except Exception as e:
+            app.logger.error("1-on-1 matching failed", exc_info=e)
+            return jsonify({"status":"error","error":str(e)}), 500
 
     elif matching_type in ("tutas circle", "circle"):
         try:
