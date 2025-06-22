@@ -23,7 +23,7 @@ OUTPUT_1ON1 = os.path.join(DATA_DIR, "output_1on1.json")
 OUTPUT_CIRCLE = os.path.join(DATA_DIR, "output_circle.json")
 
 def run_circle_matching(df, max_size=4):
-    # 1) Filter entri circle/tutas circle
+    # Filter entri circle/tutas circle
     df_circle = df[
         df["matchingType"]
           .str
@@ -31,7 +31,7 @@ def run_circle_matching(df, max_size=4):
           .isin(["tutas circle", "circle"])
     ]
 
-    # 2) Rename kolom agar graph_builder & make_subgroups bisa jalan
+    # Rename kolom agar graph_builder & make_subgroups bisa jalan
     df_circle = df_circle.rename(columns={
         "fullName":       "Nama",
         "whatsappNumber": "No WA",
@@ -41,7 +41,7 @@ def run_circle_matching(df, max_size=4):
         "status":         "Status"
     })
 
-    # 3) Map status student→Murid
+    # Map status student→Murid
     df_circle["Status"] = (
         df_circle["Status"]
           .str.strip()
@@ -50,22 +50,22 @@ def run_circle_matching(df, max_size=4):
           .fillna(df_circle["Status"])
     )
 
-    # 4) Kalau kosong, langsung return []
+    # Kalau kosong, langsung return []
     if df_circle.empty:
         return []
 
-    # 5) Reset index supaya .iloc[ ] aman, lalu bangun graph & partisi
+    # Reset index supaya .iloc[ ] aman, lalu bangun graph & partisi
     df_circle = df_circle.reset_index(drop=True)
     G = build_similarity_graph(df_circle, THRESHOLD)
     partition = louvain(G)
 
-    # 6) Flat rows dari grouping.py
+    # Flat rows dari grouping.py
     rows = make_subgroups(df_circle, partition, max_size=max_size)
 
     # DEBUG: lihat dulu baris-baris murid/tutor yang dihasilkan
     print("DEBUG rows:", rows)
 
-    # —————— Transform flat rows → struktur StudyGroup ——————
+    # Transform flat rows → struktur StudyGroup
     groups_map = {}
     for r in rows:
         cid = r["Circle ID"]
@@ -109,7 +109,7 @@ def run_circle_matching(df, max_size=4):
     return study_groups
 
 
-# 🔽 Simpan input baru dan jalankan matching otomatis
+# Simpan input baru dan jalankan matching otomatis
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.json
@@ -144,7 +144,6 @@ def submit():
             with open(OUTPUT_1ON1, "w") as f:
                 json.dump(matches, f, indent=2)
 
-            # ---- sangat penting: RETURN di sini ----
             return jsonify({"status":"1-on-1 matched","matched_pairs":matches}), 200
 
         except Exception as e:
@@ -160,7 +159,7 @@ def submit():
 
     return jsonify({"status": "received and matched"})
 
-# 🔁 Endpoint manual 1-on-1
+# Endpoint manual 1-on-1
 @app.route("/match/1on1", methods=["POST"])
 def match_1on1():
     try:
@@ -183,7 +182,7 @@ def match_1on1():
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
 
-# 🔁 Endpoint manual circle
+# Endpoint manual circle
 @app.route("/match/circle", methods=["POST"])
 def match_circle():
     try:
@@ -193,7 +192,7 @@ def match_circle():
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
 
-# 🔍 View data
+# View data
 @app.route("/available", methods=["GET"])
 def get_available():
     try:

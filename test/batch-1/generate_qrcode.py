@@ -1,7 +1,7 @@
 import qrcode
 
 # Data yang ingin dimasukkan ke dalam QR
-data = "https://www.notion.so/Muhammad-Adi-Anugerah-Arrahman-1e92524a322e80e4bdfcf582ef1cd457?pvs=4"
+data = "https://www.notion.so/Muhammad-Nur-Fauzi-2182524a322e80cab6a3eae7d1e0a09e?source=copy_link"
 
 # Membuat QR code
 qr = qrcode.QRCode(
@@ -18,4 +18,4 @@ qr.make(fit=True)
 img = qr.make_image(fill_color="black", back_color="white")
 
 # Simpan gambar
-img.save("qrcode_example.png")
+img.save("qrcode_mnf.png")

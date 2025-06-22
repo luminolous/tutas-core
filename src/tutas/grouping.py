@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 def make_subgroups(df, partition, max_size):
-    # df: DataFrame valid dengan kolom Nama, Status, No WA
     df = df.copy()
     df["Circle ID"] = df["Nama"].map(partition)
 
@@ -14,7 +13,6 @@ def make_subgroups(df, partition, max_size):
         tutors = group[group["Status"].str.lower() == "tutor"].to_dict("records")
         students = group[group["Status"].str.lower().isin(["murid","student"])].to_dict("records")
 
-        # 1) Untuk setiap tutor, bikin sub-grup: [tutor + up to 4 murid]
         for t in tutors:
             assigned_students = students[:4]     # ambil 4 murid pertama
             students = students[4:]             # sisa murid
@@ -22,21 +20,16 @@ def make_subgroups(df, partition, max_size):
             circle_result.append((new_circle_id, sub))
             new_circle_id += 1
 
-        # 2) Sisa murid → kelompok murid saja, 4 orang per sub-grup
         while len(students) > 0:
             sub_students = students[:4]
             students = students[4:]
             circle_result.append((new_circle_id, sub_students))
             new_circle_id += 1
 
-        # 3) (Opsional) Jika ada tutor “tersisa” (jarang), masukkan sendiri
-        #    — tapi biasanya tutors habis di langkah 1
         for t in tutors[len(tutors):]:
             circle_result.append((new_circle_id, [t]))
             new_circle_id += 1
 
-    # Setelah ini, circle_result berisi list of (CircleID, list_of_rows)
-    # Lanjutkan STEP 5: simpan ke CSV seperti biasa
     output_rows = []
     for cid, rows in circle_result:
         for row in rows:
