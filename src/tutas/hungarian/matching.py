@@ -99,11 +99,48 @@ def format_matches(score_df, assignment, df_1on1):
 
     return matches, total
 
+def format_matches_unitest(score_df, assignment):
+    """
+    Format hasil matching untuk keperluan unit test.
+    Input:
+      - score_df : DataFrame tutor × murid berisi skor integer
+      - assignment : list assignment hasil dari Hungarian
+    Output:
+      - list of (tutor_name, murid_name, score)
+      - total_score : jumlah semua skor matching
+    """
+    tutors = score_df.index.tolist()
+    murids = score_df.columns.tolist()
+    scores = score_df.values
+
+    matches = []
+    total = 0
+
+    for i, j in enumerate(assignment):
+        # Skip jika out-of-bound
+        if j < 0 or j >= len(murids) or i >= len(tutors):
+            continue
+        
+        tutor_name = tutors[i]
+        murid_name = murids[j]
+
+        # Skip dummy pair
+        if tutor_name.startswith("DUMMY") or murid_name.startswith("DUMMY"):
+            continue
+
+        score = int(scores[i][j])
+        matches.append((tutor_name, murid_name, score))
+        total += score
+
+    return matches, total
+
+
+
 def match_tutors(score_df: pd.DataFrame, verbose: bool = False) -> list[int]:
     cost = build_cost_matrix(score_df)
     assignment = hungarian(cost)
     if verbose:
-        matches, total = format_matches(score_df, assignment)
+        matches, total = format_matches_unitest(score_df, assignment)
         print("\n🔗 Optimal tutor–murid pairing (Hungarian):")
         for t, m, s in matches:
             print(f"{t} → {m} (skor: {s})")
