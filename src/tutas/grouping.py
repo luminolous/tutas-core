@@ -11,8 +11,8 @@ def make_subgroups(df, partition, max_size):
 
     for cid, group in circle_groups:
         # Pisahkan tutor & murid
-        tutors   = group[group["Status"]=="Tutor"].to_dict("records")
-        students = group[group["Status"]=="Murid"].to_dict("records")
+        tutors = group[group["Status"].str.lower() == "tutor"].to_dict("records")
+        students = group[group["Status"].str.lower().isin(["murid","student"])].to_dict("records")
 
         # 1) Untuk setiap tutor, bikin sub-grup: [tutor + up to 4 murid]
         for t in tutors:
