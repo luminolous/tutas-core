@@ -66,12 +66,7 @@ def hungarian(cost: list[list[float]]) -> list[int]:
             assignment[p[j]-1] = j-1
     return assignment
 
-def format_matches(score_df: pd.DataFrame, assignment: list[int]) -> tuple[list[tuple[str,str,int]], int]:
-    """
-    Dari DataFrame skor dan assignment, kembalikan:
-      - list of (tutor_name, murid_name, score)
-      - total_score
-    """
+def format_matches(score_df, assignment, df_1on1):
     tutors = score_df.index.tolist()
     murids = score_df.columns.tolist()
     scores = score_df.values
@@ -79,17 +74,27 @@ def format_matches(score_df: pd.DataFrame, assignment: list[int]) -> tuple[list[
     matches = []
     total = 0
     for i, j in enumerate(assignment):
-        if j >= len(murids) or i >= len(tutors):
-            continue
-
-        tutor_name = tutors[i]
-        murid_name = murids[j]
-
-        if tutor_name.startswith("DUMMY") or murid_name.startswith("DUMMY"):
-            continue
-
+        if j < 0 or j >= len(murids): continue
+        t_name = tutors[i]
+        s_name = murids[j]
         s = scores[i][j]
-        matches.append((tutor_name, murid_name, int(s)))
+        if t_name.startswith("DUMMY") or s_name.startswith("DUMMY"): continue
+
+        # Ambil baris DataFrame original berdasarkan fullName
+        t_row = df_1on1[(df_1on1["fullName"] == t_name) & (df_1on1["status"].str.lower()=="tutor")].iloc[0]
+        s_row = df_1on1[(df_1on1["fullName"] == s_name) & (df_1on1["status"].str.lower()=="student")].iloc[0]
+
+        matches.append({
+            "tutorName"       : t_name,
+            "studentName"     : s_name,
+            "score"           : int(s),
+            "tutorWhatsapp"   : t_row["whatsappNumber"],
+            "studentWhatsapp" : s_row["whatsappNumber"],
+            "subject"         : t_row["courseName"],
+            "subtopic"        : t_row["topicSubtopic"],
+            "schedule"        : f'{t_row["preferredDate"]} {t_row["preferredTime"]}',
+            "learningMode"    : t_row["learningMode"],
+        })
         total += s
 
     return matches, total

@@ -48,7 +48,7 @@ def submit():
             if not tutors.empty and not murids.empty:
                 df_score = compute_score_matrix(tutors, murids)
                 assignment = match_tutors(df_score)
-                matches, total = format_matches(df_score, assignment)
+                matches, total = format_matches(df_score, assignment, df_1on1)
 
                 with open(OUTPUT_1ON1, "w") as f:
                     json.dump(matches, f, indent=2)
@@ -85,12 +85,12 @@ def match_1on1():
 
         df_score = compute_score_matrix(tutors, murids)
         assignment = match_tutors(df_score)
-        matches, total = format_matches(df_score, assignment)
+        matches, total = format_matches(df_score, assignment, df_1on1)
 
         with open(OUTPUT_1ON1, "w") as f:
             json.dump(matches, f, indent=2)
 
-        return jsonify({"status": "success", "total_score": total, "matches": matches})
+        return jsonify({"status":"success", "total_score": total, "matched_pairs": matches})
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
 
@@ -121,10 +121,10 @@ def match_circle():
 @app.route("/available", methods=["GET"])
 def get_available():
     try:
-        with open(OUTPUT_1ON1) as f:
-            return jsonify(json.load(f))
+        raw = json.load(open(OUTPUT_1ON1))
+        return jsonify({"matched_pairs": raw})
     except:
-        return jsonify([])
+        return jsonify({"matched_pairs": []})
 
 @app.route("/tutas-circle", methods=["GET"])
 def get_circle():
