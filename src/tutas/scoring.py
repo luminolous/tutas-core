@@ -1,58 +1,46 @@
 import pandas as pd
 import numpy as np
 
-def load_dummy_tutors() -> pd.DataFrame:
-    """Kembalikan DataFrame tutor dengan kolom Nama, Topik, Gaya, Mode."""
-    return pd.DataFrame({
-        "Nama": ["Tutor1", "Tutor2", "Tutor3", "Tutor4", "Tutor5"],
-        "Topik": ["Kalkulus", "Struktur Data", "Statistika", "Struktur Data", "Kalkulus"],
-        "Gaya": ["Visual", "Diskusi", "Latihan", "Visual", "Diskusi"],
-        "Mode": ["Online", "Offline", "Online", "Chat", "Offline"]
-    })
-
-def load_dummy_students() -> pd.DataFrame:
-    """Kembalikan DataFrame murid dengan kolom Nama, Topik, Gaya, Mode."""
-    return pd.DataFrame({
-        "Nama": ["Murid1", "Murid2", "Murid3", "Murid4", "Murid5"],
-        "Topik": ["Kalkulus", "Struktur Data", "Statistika", "Kalkulus", "Struktur Data"],
-        "Gaya": ["Visual", "Diskusi", "Latihan", "Diskusi", "Visual"],
-        "Mode": ["Online", "Offline", "Online", "Chat", "Offline"]
-    })
-
 def compute_score_matrix(
     tutors: pd.DataFrame,
     students: pd.DataFrame,
-    weights: dict[str,int] = {"Topik":5, "Gaya":3, "Mode":2}
+    weights: dict[str, int] = {
+        "courseName": 4,
+        "topicSubtopic": 5,
+        "learningStyle": 3,
+        "learningMode": 2,
+        "preferredDate": 1
+    }
 ) -> pd.DataFrame:
-    """
-    Hitung matriks skor kecocokan tutor–murid.
-    weights memberi bobot untuk setiap atribut.
-    """
-    def score_row(t: pd.Series, m: pd.Series) -> int:
-        s = 0
-        for attr, w in weights.items():
-            if t[attr] == m[attr]:
-                s += w
-        return s
+    """Hitung matriks skor antara tutor dan murid, lalu pad agar persegi."""
 
-    n_t, n_s = len(tutors), len(students)
-    mat = np.zeros((n_t, n_s), dtype=int)
-    for i, tut in tutors.iterrows():
-        for j, stu in students.iterrows():
-            mat[i, j] = score_row(tut, stu)
+    def score_row(t: pd.Series, s: pd.Series) -> int:
+        return sum(
+            w for attr, w in weights.items()
+            if t.get(attr) == s.get(attr)
+        )
 
-    df = pd.DataFrame(mat,
-                      index=tutors["Nama"].tolist(),
-                      columns=students["Nama"].tolist())
-    return df
+    num_tutors, num_students = len(tutors), len(students)
+    mat = np.zeros((num_tutors, num_students), dtype=int)
 
-def matriks() -> pd.DataFrame:
-    """
-    Wrapper seperti dulu: load dummy, compute, print, return DataFrame.
-    """
-    tutors  = load_dummy_tutors()
-    students= load_dummy_students()
-    df_score= compute_score_matrix(tutors, students)
-    print("\n📊 Matriks Skor Kecocokan Tutor–Murid:\n")
-    print(df_score)
-    return df_score
+    for i, t in tutors.iterrows():
+        for j, s in students.iterrows():
+            mat[i, j] = score_row(t, s)
+
+    tutor_names = tutors["fullName"].tolist() if "fullName" in tutors.columns else [f"Tutor{i}" for i in range(num_tutors)]
+    student_names = students["fullName"].tolist() if "fullName" in students.columns else [f"Student{j}" for j in range(num_students)]
+
+    # Padding agar square
+    diff = abs(num_tutors - num_students)
+    if num_tutors < num_students:
+        # Tambah dummy tutor
+        dummy_rows = np.zeros((diff, num_students), dtype=int)
+        mat = np.vstack([mat, dummy_rows])
+        tutor_names += [f"DUMMY_TUTOR_{i+1}" for i in range(diff)]
+    elif num_students < num_tutors:
+        # Tambah dummy murid
+        dummy_cols = np.zeros((num_tutors, diff), dtype=int)
+        mat = np.hstack([mat, dummy_cols])
+        student_names += [f"DUMMY_STUDENT_{j+1}" for j in range(diff)]
+
+    return pd.DataFrame(mat, index=tutor_names, columns=student_names)
