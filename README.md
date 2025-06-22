@@ -97,17 +97,6 @@ $ pnpm run dev
 
 ---
 
-## Performance
-
-| Dataset Size              | Hungarian time | Louvain time | Notes     |
-| ------------------------- | -------------: | -----------: | --------- |
-| 20 tutors + 50 students   |         0.04 s |       0.02 s | laptop M1 |
-| 100 tutors + 300 students |          0.6 s |       0.15 s |           |
-
-> Louvain scales \~O(E); Hungarian O(n³) but manageable for ≤ 200×200.
-
----
-
 ## License
 
 Licensed under the **MIT License** – see [`LICENSE`](LICENSE).
