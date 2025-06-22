@@ -23,9 +23,12 @@ def compute_score_matrix(
     num_tutors, num_students = len(tutors), len(students)
     mat = np.zeros((num_tutors, num_students), dtype=int)
 
-    for i, t in tutors.iterrows():
-        for j, s in students.iterrows():
+    for i in range(len(tutors)):
+        t = tutors.iloc[i]
+        for j in range(len(students)):
+            s = students.iloc[j]
             mat[i, j] = score_row(t, s)
+
 
     tutor_names = tutors["fullName"].tolist() if "fullName" in tutors.columns else [f"Tutor{i}" for i in range(num_tutors)]
     student_names = students["fullName"].tolist() if "fullName" in students.columns else [f"Student{j}" for j in range(num_students)]

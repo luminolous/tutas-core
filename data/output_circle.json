@@ -1,0 +1,17 @@
+{
+  "study_groups": [
+    {
+      "id": "2",
+      "courseName": "Data Structure",
+      "subtopic": "1111",
+      "schedule": "1111-11-11 11:11",
+      "learningMode": "Online",
+      "maxStudents": 4,
+      "tutor": {
+        "name": "Paras",
+        "whatsapp": "6200000000000"
+      },
+      "students": []
+    }
+  ]
+}

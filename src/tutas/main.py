@@ -3,12 +3,14 @@ from flask_cors import CORS
 import pandas as pd
 import json
 import os
+import re
 
 from louvain.louvain import louvain
 from graph_builder import build_similarity_graph
 from grouping import make_subgroups
 from scoring import compute_score_matrix
 from hungarian.matching import match_tutors, format_matches
+from config import THRESHOLD
 
 app = Flask(__name__)
 CORS(app)
@@ -19,6 +21,90 @@ os.makedirs(DATA_DIR, exist_ok=True)
 INPUT_FILE = os.path.join(DATA_DIR, "input.json")
 OUTPUT_1ON1 = os.path.join(DATA_DIR, "output_1on1.json")
 OUTPUT_CIRCLE = os.path.join(DATA_DIR, "output_circle.json")
+
+def run_circle_matching(df, max_size=4):
+    # 1) Filter entri circle/tutas circle
+    df_circle = df[
+        df["matchingType"]
+          .str
+          .lower()
+          .isin(["tutas circle", "circle"])
+    ]
+
+    # 2) Rename kolom agar graph_builder & make_subgroups bisa jalan
+    df_circle = df_circle.rename(columns={
+        "fullName":       "Nama",
+        "whatsappNumber": "No WA",
+        "topicSubtopic":  "Topik",
+        "learningMode":   "Mode",
+        "learningStyle":  "Gaya",
+        "status":         "Status"
+    })
+
+    # 3) Map status student→Murid
+    df_circle["Status"] = (
+        df_circle["Status"]
+          .str.strip()
+          .str.lower()
+          .map({"student": "Murid", "tutor": "Tutor"})
+          .fillna(df_circle["Status"])
+    )
+
+    # 4) Kalau kosong, langsung return []
+    if df_circle.empty:
+        return []
+
+    # 5) Reset index supaya .iloc[ ] aman, lalu bangun graph & partisi
+    df_circle = df_circle.reset_index(drop=True)
+    G = build_similarity_graph(df_circle, THRESHOLD)
+    partition = louvain(G)
+
+    # 6) Flat rows dari grouping.py
+    rows = make_subgroups(df_circle, partition, max_size=max_size)
+
+    # —————— Transform flat rows → struktur StudyGroup ——————
+    groups_map = {}
+    for r in rows:
+        cid = r["Circle ID"]
+        person = {
+            "name":     r["Nama"],
+            "whatsapp": re.sub(r"\D", "", r["No WA"])
+        }
+
+        if cid not in groups_map:
+            groups_map[cid] = {
+                "id":           str(cid),
+                "courseName":   None,
+                "subtopic":     None,
+                "schedule":     None,
+                "learningMode": None,
+                "maxStudents":  max_size,
+                "tutor":        None,
+                "students":     []
+            }
+
+        # ambil metadata dari baris tutor
+        if r["Tutor/Murid"].lower() == "tutor":
+            tutor_row = df_circle[df_circle["Nama"] == r["Nama"]].iloc[0]
+            groups_map[cid].update({
+                "courseName":   tutor_row["courseName"],
+                "subtopic":     tutor_row["Topik"],
+                "schedule":     f"{tutor_row['preferredDate']} {tutor_row['preferredTime']}",
+                "learningMode": tutor_row["Mode"]
+            })
+            groups_map[cid]["tutor"] = person
+        else:
+            groups_map[cid]["students"].append(person)
+
+    study_groups = list(groups_map.values())
+
+    # Hanya ambil grup yang tutor-nya tidak null
+    study_groups = [g for g in study_groups if g["tutor"] is not None]
+
+    with open(OUTPUT_CIRCLE, "w") as f:
+        json.dump({ "study_groups": study_groups }, f, indent=2)
+    return study_groups
+
 
 # 🔽 Simpan input baru dan jalankan matching otomatis
 @app.route("/submit", methods=["POST"])
@@ -48,26 +134,21 @@ def submit():
             if not tutors.empty and not murids.empty:
                 df_score = compute_score_matrix(tutors, murids)
                 assignment = match_tutors(df_score)
-                matches, total = format_matches(df_score, assignment)
+                matches, total = format_matches(df_score, assignment, df_1on1)
 
                 with open(OUTPUT_1ON1, "w") as f:
                     json.dump(matches, f, indent=2)
-        except Exception as e:
-            print(f"❌ Matching 1-on-1 failed: {e}")
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return jsonify({ "status": "error", "error": "circle matching failed" }), 500
 
-    elif matching_type == "circle":
+    elif matching_type in ("tutas circle", "circle"):
         try:
-            df_circle = df[df["matchingType"].str.lower() == "circle"]
-            if not df_circle.empty:
-                G = build_similarity_graph(df_circle, threshold=0.5)
-                partition = louvain(G)
-                rows = make_subgroups(df_circle, partition, max_size=4)
-                df_result = pd.DataFrame(rows)
-
-                with open(OUTPUT_CIRCLE, "w") as f:
-                    json.dump(df_result.to_dict(orient="records"), f, indent=2)
-        except Exception as e:
-            print(f"❌ Matching Circle failed: {e}")
+            rows = run_circle_matching(df)
+        except Exception:
+            import traceback; traceback.print_exc()
+            return jsonify({"status":"error","error":"circle matching failed"}), 500
 
     return jsonify({"status": "received and matched"})
 
@@ -85,12 +166,12 @@ def match_1on1():
 
         df_score = compute_score_matrix(tutors, murids)
         assignment = match_tutors(df_score)
-        matches, total = format_matches(df_score, assignment)
+        matches, total = format_matches(df_score, assignment, df_1on1)
 
         with open(OUTPUT_1ON1, "w") as f:
             json.dump(matches, f, indent=2)
 
-        return jsonify({"status": "success", "total_score": total, "matches": matches})
+        return jsonify({"status":"success", "total_score": total, "matched_pairs": matches})
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
 
@@ -99,21 +180,8 @@ def match_1on1():
 def match_circle():
     try:
         df = pd.read_json(INPUT_FILE)
-        df_circle = df[df["matchingType"].str.lower() == "circle"]
-
-        if df_circle.empty:
-            return jsonify({"status": "no circle entries"})
-
-        G = build_similarity_graph(df_circle, threshold=0.5)
-        partition = louvain(G)
-        rows = make_subgroups(df_circle, partition, max_size=4)
-        df_result = pd.DataFrame(rows)
-
-        result = df_result.to_dict(orient="records")
-        with open(OUTPUT_CIRCLE, "w") as f:
-            json.dump(result, f, indent=2)
-
-        return jsonify({"status": "success", "groups": result})
+        rows = run_circle_matching(df)
+        return jsonify({"status":"success","groups": rows})
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
 
@@ -121,18 +189,18 @@ def match_circle():
 @app.route("/available", methods=["GET"])
 def get_available():
     try:
-        with open(OUTPUT_1ON1) as f:
-            return jsonify(json.load(f))
+        raw = json.load(open(OUTPUT_1ON1))
+        return jsonify({"matched_pairs": raw})
     except:
-        return jsonify([])
+        return jsonify({"matched_pairs": []})
 
 @app.route("/tutas-circle", methods=["GET"])
 def get_circle():
     try:
-        with open(OUTPUT_CIRCLE) as f:
-            return jsonify(json.load(f))
+        payload = json.load(open(OUTPUT_CIRCLE))
+        return jsonify(payload)
     except:
-        return jsonify([])
+        return jsonify({ "study_groups": [] })
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
