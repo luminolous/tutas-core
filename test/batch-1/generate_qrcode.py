@@ -1,7 +1,7 @@
 import qrcode
 
 # Data yang ingin dimasukkan ke dalam QR
-data = "https://www.notion.so/Muhammad-Nur-Fauzi-2182524a322e80cab6a3eae7d1e0a09e?source=copy_link"
+data = ""
 
 # Membuat QR code
 qr = qrcode.QRCode(
