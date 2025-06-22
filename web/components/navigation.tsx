@@ -8,7 +8,7 @@ const Navigation = () => {
 
   const navItems = [
     { href: "/", label: "Register" },
-    { href: "/available", label: "Available Students & Tutors" },
+    { href: "/available", label: "Students & Tutors Matched" },
     { href: "/tutas-circle", label: "Tutas Circle" },
     { href: "/about", label: "About" },
   ]
